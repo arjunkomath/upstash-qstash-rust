@@ -1,5 +1,5 @@
 # Upstash QStash
 
-Unofficial Rust SDK for Upstash QStash
+Unofficial Rust client for Upstash QStash
 
 This is still WIP!

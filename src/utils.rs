@@ -7,12 +7,14 @@ pub type Result<T> = std::result::Result<T, QStashError>;
 
 #[derive(Error, Debug)]
 pub enum QStashError {
-    #[error("build QStash client failed")]
+    #[error("http client failed: {0}")]
     ClientError(#[from] ReqError),
-    #[error("invalid header value")]
+    #[error("invalid header value: {0}")]
     InvalidHeaderValue(#[from] InvalidHeaderValue),
     #[error("parse Url error")]
     UrlError(#[from] ParseError),
-    #[error("serialize or deserialize error")]
+    #[error("serialize or deserialize error: {0}")]
     SerdeError(#[from] SerdeError),
+    #[error("unknown error")]
+    Unknown,
 }

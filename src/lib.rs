@@ -1,23 +1,20 @@
+//! # Upstash QStash
+//! Unofficial Rust client for [Upstash QStash](https://docs.upstash.com/qstash)
+//! QStash is an HTTP based messaging and scheduling solution for the serverless and edge runtimes.
 use reqwest::{header, Url};
-use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde::Serialize;
+use serde_json::{json, Value};
 use std::str;
 
 mod utils;
 
 /// Url of the qstash api server.
 /// will be the base url for requests via this Client library.
-static BASE_URL: &'static str = "https://qstash.upstash.io/v1";
-// static BASE_URL: &'static str = "http://httpbin.org/post"; // For testing
+static BASE_URL: &'static str = "https://qstash.upstash.io/v1/";
 
 pub struct Client {
     pub http: reqwest::Client,
-    url: Url,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ApiResponse {
-    pub message_id: String,
+    api_base_url: Url,
 }
 
 impl Client {
@@ -37,33 +34,56 @@ impl Client {
             .default_headers(headers)
             .build()?;
 
-        let url = Url::parse(BASE_URL)?;
+        let api_base_url = Url::parse(BASE_URL)?;
 
-        Ok(Self { http, url })
+        Ok(Self { http, api_base_url })
     }
 
-    /// Publish a message to qstash.
+    /// Publish a message to a URL or Topic
     ///
     /// # Arguments
     ///
-    /// * `url` - The url of the endpoint to publish to.
+    /// * `url_or_topic` - The url of the endpoint to publish to.
     /// * `body` - The JSON message to publish.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use qstash::Client;
+    /// use serde_json::json;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), ()> {
+    ///     let qstash_client = upstash_qstash::Client::new("your-token".to_owned()).expect("Init failed");
+    ///     let body = serde_json::json!({
+    ///         "key1": "value1",
+    ///         "key2": "value2"
+    ///     });
+    ///     match qstash_client
+    ///         .publish_json(
+    ///             "url-or-token".to_owned(),
+    ///             &body,
+    ///         )
+    ///         .await
+    ///     {
+    ///         Ok(result) => println!("Published {:?}", result),
+    ///         Err(e) => println!("Error: {}", e),
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
     pub async fn publish_json<T: Serialize>(
         &self,
-        url: String,
+        url_or_topic: String,
         body: &T,
-    ) -> utils::Result<ApiResponse> {
-        let url = self.url.join(format!("/publish/{}", url).as_str())?;
+    ) -> utils::Result<Value> {
+        let endpoint = self
+            .api_base_url
+            .join(format!("publish/{}", url_or_topic).as_str())?;
 
         let payload = json!(body);
-
-        let response = self.http.post(url).json(&payload).send().await?;
-
-        if response.status().is_success() {
-            let body = response.json().await?;
-            Ok(body)
-        } else {
-            Err(response.error_for_status().unwrap_err().into())
-        }
+        let response = self.http.post(endpoint).json(&payload).send().await?;
+        let body = response.json().await?;
+        Ok(body)
     }
 }
