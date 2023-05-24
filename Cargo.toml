@@ -1,0 +1,13 @@
+[package]
+name = "upstash-qstash"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.11.18", features = ["json"] }
+url = "2.3.1"
+serde = { version = "1.0.160", features = ["derive"] }
+serde_json = "1.0.96"
+thiserror = "1.0.40"
