@@ -6,6 +6,7 @@ description = "Unofficial Rust client for Upstash QStash"
 authors = ["Arjun Komath <arjunkomath@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/arjunkomath/upstash-qstash-rust"
+documentation = "https://docs.rs/upstash-qstash"
 keywords = ["upstash", "qstash", "client"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

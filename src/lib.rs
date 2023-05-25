@@ -6,80 +6,17 @@ use serde::Serialize;
 use serde_json::{json, Value};
 use std::str;
 
+pub use message::MessageSettings;
+pub use utils::{QStashError, Result};
+
+mod message;
 mod utils;
 
 /// Url of the qstash api server.
 /// will be the base url for requests via this Client library.
 static BASE_URL: &'static str = "https://qstash.upstash.io/v1/";
 
-#[derive(Debug)]
-pub struct MessageSettings<'a> {
-    pub delay: Option<&'a str>,
-    pub retries: Option<u32>,
-    pub cron: Option<&'a str>,
-    pub callback: Option<&'a str>,
-    pub dedup_id: Option<&'a str>,
-}
-
-impl<'a> MessageSettings<'a> {
-    pub fn new() -> Self {
-        Self {
-            delay: None,
-            retries: None,
-            cron: None,
-            callback: None,
-            dedup_id: None,
-        }
-    }
-
-    pub fn delay(mut self, delay: &'a str) -> Self {
-        self.delay = Some(delay);
-        self
-    }
-
-    pub fn retries(mut self, retries: u32) -> Self {
-        self.retries = Some(retries);
-        self
-    }
-
-    pub fn cron(mut self, cron: &'a str) -> Self {
-        self.cron = Some(cron);
-        self
-    }
-
-    pub fn callback_url(mut self, callback_url: &'a str) -> Self {
-        self.callback = Some(callback_url);
-        self
-    }
-
-    pub fn dedup_id(mut self, dedup_id: &'a str) -> Self {
-        self.dedup_id = Some(dedup_id);
-        self
-    }
-
-    fn as_headers(self) -> header::HeaderMap {
-        let mut headers = header::HeaderMap::new();
-
-        if let Some(delay) = self.delay {
-            headers.insert("Upstash-Delay", delay.to_string().parse().unwrap());
-        }
-        if let Some(retries) = self.retries {
-            headers.insert("Upstash-Retries", retries.to_string().parse().unwrap());
-        }
-        if let Some(cron) = self.cron {
-            headers.insert("Upstash-Cron", cron.parse().unwrap());
-        }
-        if let Some(callback) = self.callback {
-            headers.insert("Upstash-Callback", callback.parse().unwrap());
-        }
-        if let Some(dedup_id) = self.dedup_id {
-            headers.insert("Upstash-Deduplication-Id", dedup_id.parse().unwrap());
-        }
-
-        headers
-    }
-}
-
+/// QStash client
 pub struct Client {
     http: reqwest::Client,
     api_base_url: Url,
