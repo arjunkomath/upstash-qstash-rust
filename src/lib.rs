@@ -44,6 +44,46 @@ impl Client {
         Ok(Self { http, api_base_url })
     }
 
+    /// Get your current quota limits.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// match qstash.get_quota().await {
+    ///     Ok(result) => println!("Quota: {:?}", result),
+    ///     Err(e) => println!("Error: {}", e),
+    /// }
+    /// ```
+    pub async fn get_quota(&self) -> utils::Result<Value> {
+        let endpoint = self.api_base_url.join("quota")?;
+        let response = self.http.get(endpoint).send().await?;
+        let body = response.json().await?;
+        Ok(body)
+    }
+
+    /// Get the complete message with the given id
+    ///
+    /// # Arguments
+    ///
+    /// * `message_id` - The id of the message to get.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// match qstash.get_message("msg_5QRRvEnXf9J".to_owned()).await {
+    ///     Ok(result) => println!("Result: {:?}", result),
+    ///     Err(e) => println!("Error: {}", e),
+    /// }
+    /// ```
+    pub async fn get_message(&self, message_id: String) -> utils::Result<Value> {
+        let endpoint = self
+            .api_base_url
+            .join(format!("messages/{}", message_id).as_str())?;
+        let response = self.http.get(endpoint).send().await?;
+        let body = response.json().await?;
+        Ok(body)
+    }
+
     /// Publish a message to a URL or Topic
     ///
     /// # Arguments
@@ -59,12 +99,12 @@ impl Client {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), ()> {
-    ///     let qstash_client = upstash_qstash::Client::new("your-token".to_owned()).expect("Init failed");
+    ///     let qstash = upstash_qstash::Client::new("your-token".to_owned()).expect("Init failed");
     ///     let body = serde_json::json!({
     ///         "key1": "value1",
     ///         "key2": "value2"
     ///     });
-    ///     match qstash_client
+    ///     match qstash
     ///         .publish_json(
     ///             "url-or-token".to_owned(),
     ///             &body,
