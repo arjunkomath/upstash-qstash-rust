@@ -142,6 +142,33 @@ impl Client {
             .send()
             .await?;
         let body = response.json().await?;
+       Ok(body)
+    }
+
+    /// Cancel a message. QStash will no longer try to deliver this message to any endpoints.
+    ///
+    /// All scheduled executions of this message will be canceled as well.
+    pub async fn cancel_message(&self, message_id: String) -> utils::Result<Value> {
+        let endpoint = self
+            .api_base_url
+            .join(format!("messages/{}", message_id).as_str())?;
+        let response = self.http.delete(endpoint).send().await?;
+        let body = response.json().await?;
+        Ok(body)
+    }
+
+    /// Returns the last 100 tasks in descending chronological order.
+    ///
+    /// Use the cursor parameter to paginate.
+    pub async fn get_tasks(&self, message_id: String, cursor: Option<i64>) -> utils::Result<Value> {
+        let mut endpoint = self.api_base_url.join(format!("messages/{}/tasks", message_id).as_str())?;
+
+        if let Some(cursor) = cursor {
+            endpoint.set_query(Some(format!("cursor={}", cursor).as_str()));
+        }
+
+        let response = self.http.get(endpoint).send().await?;
+        let body = response.json().await?;
         Ok(body)
     }
 }
