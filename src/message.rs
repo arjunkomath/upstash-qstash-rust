@@ -25,7 +25,7 @@ impl<'a> MessageSettings<'a> {
 
     /// Delay a message by a certain amount of time relative to the time the message was published.
     ///
-    /// The format for the duration is <number><unit>. Here are some examples:
+    /// The format for the duration is (number)(unit). Here are some examples:
     ///
     /// 10s = 10 seconds
     /// 1m = 1 minute

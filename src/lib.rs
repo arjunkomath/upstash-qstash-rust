@@ -26,7 +26,7 @@ impl Client {
     /// Create a new QStash client using your token.
     /// The token is the api key of your qstash account.
     /// You can get it from the qstash dashboard.
-    pub fn new(token: String) -> utils::Result<Self> {
+    pub fn new(token: &str) -> utils::Result<Self> {
         let auth = format!("Bearer {}", token);
 
         let mut value = header::HeaderValue::from_str(auth.as_str())?;
@@ -70,12 +70,12 @@ impl Client {
     /// # Example
     ///
     /// ```
-    /// match qstash.get_message("msg_5QRRvEnXf9J".to_owned()).await {
+    /// match qstash.get_message(message_id).await {
     ///     Ok(result) => println!("Result: {:?}", result),
     ///     Err(e) => println!("Error: {}", e),
     /// }
     /// ```
-    pub async fn get_message(&self, message_id: String) -> utils::Result<Value> {
+    pub async fn get_message(&self, message_id: &str) -> utils::Result<Value> {
         let endpoint = self
             .api_base_url
             .join(format!("messages/{}", message_id).as_str())?;
@@ -99,14 +99,14 @@ impl Client {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), ()> {
-    ///     let qstash = upstash_qstash::Client::new("your-token".to_owned()).expect("Init failed");
+    ///     let qstash = upstash_qstash::Client::new(token).expect("Init failed");
     ///     let body = serde_json::json!({
     ///         "key1": "value1",
     ///         "key2": "value2"
     ///     });
     ///     match qstash
     ///         .publish_json(
-    ///             "url-or-token".to_owned(),
+    ///             url,
     ///             &body,
     ///         )
     ///         .await
@@ -119,7 +119,7 @@ impl Client {
     /// ```
     pub async fn publish_json<'a, T, U>(
         &self,
-        url_or_topic: String,
+        url_or_topic: &str,
         body: &T,
         message_settings: U,
     ) -> utils::Result<Value>
@@ -142,13 +142,13 @@ impl Client {
             .send()
             .await?;
         let body = response.json().await?;
-       Ok(body)
+        Ok(body)
     }
 
     /// Cancel a message. QStash will no longer try to deliver this message to any endpoints.
     ///
     /// All scheduled executions of this message will be canceled as well.
-    pub async fn cancel_message(&self, message_id: String) -> utils::Result<Value> {
+    pub async fn cancel_message(&self, message_id: &str) -> utils::Result<Value> {
         let endpoint = self
             .api_base_url
             .join(format!("messages/{}", message_id).as_str())?;
@@ -160,8 +160,10 @@ impl Client {
     /// Returns the last 100 tasks in descending chronological order.
     ///
     /// Use the cursor parameter to paginate.
-    pub async fn get_tasks(&self, message_id: String, cursor: Option<i64>) -> utils::Result<Value> {
-        let mut endpoint = self.api_base_url.join(format!("messages/{}/tasks", message_id).as_str())?;
+    pub async fn get_tasks(&self, message_id: &str, cursor: Option<i64>) -> utils::Result<Value> {
+        let mut endpoint = self
+            .api_base_url
+            .join(format!("messages/{}/tasks", message_id).as_str())?;
 
         if let Some(cursor) = cursor {
             endpoint.set_query(Some(format!("cursor={}", cursor).as_str()));
